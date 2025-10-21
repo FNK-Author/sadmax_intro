@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Landing — Zeit zurückdrehen</title>
+  <style>
+    :root{--btn-bg:#0A0A0A;--btn-border:rgba(255,255,255,1);--btn-color:#fff}
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#fff}
+    body{
+      background-image:url('https://i.imgur.com/gwp87oN.jpeg');
+      background-size:cover;background-position:center center;display:flex;align-items:center;justify-content:center;
+      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;padding:16px;
+      transition:background-image .6s ease-in-out;
+    }
+    .tint::after{content:"";position:fixed;inset:0;background:rgba(255,0,0,0.0);pointer-events:none}
+    .wrap{width:100%;max-width:520px;margin:0 auto;text-align:center}
+    .center-box{display:flex;flex-direction:column;gap:18px;align-items:center;justify-content:center;min-height:60vh}
+    .date{font-weight:800;color:#b30000;font-size:30px;letter-spacing:0.5px}
+    .btn{background:var(--btn-bg);color:var(--btn-color);border:2px solid var(--btn-border);padding:12px 18px;border-radius:10px;font-weight:700;min-width:220px}
+    .btn:active{transform:translateY(1px)}
+    .video-wrap{width:100%;max-width:540px}
+    iframe{width:100%;height:220px;border:0;border-radius:10px}
+    .story{
+      width:100%;
+      max-width:540px;
+      max-height:50vh;
+      overflow-y:auto;             /* vertikal scrollbar */
+      overflow-x:hidden;           /* horizontal blockieren */
+      padding:12px;
+      border-radius:8px;
+      background:rgba(0,0,0,0.4); /* 20% schwarz */
+      border:0;
+      color:#fff;
+      text-align:left;
+      line-height:1.5;
+      white-space:pre-wrap;        /* Zeilenumbrüche umgesetzt */
+      word-wrap:break-word;        /* lange Wörter umbrechen */
+    }
+    .link-btn{display:inline-block;text-decoration:none}
+    @media(min-width:480px){iframe{height:300px}}
+  </style>
+</head>
+<body>
+  <audio id="bgAudio" loop playsinline preload="none"></audio>
+  <audio id="sfxAudio" playsinline preload="none"></audio>
+
+  <div class="wrap">
+    <div class="center-box">
+      <div id="date" class="date">22. OKTOBER 2025</div>
+      <button id="rewindBtn" class="btn">Zeit zurückdrehen</button>
+      <div id="dynamic" style="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center"></div>
+    </div>
+  </div>
+
+  <script>
+    const months = ['JANUAR','FEBRUAR','MÄRZ','APRIL','MAI','JUNI','JULI','AUGUST','SEPTEMBER','OKTOBER','NOVEMBER','DEZEMBER'];
+    const fmtGerman = d => `${d.getDate()}. ${months[d.getMonth()]} ${d.getFullYear()}`.toUpperCase();
+    const easeInOutQuad = t => t<0.5 ? 2*t*t : -1 + (4-2*t)*t;
+
+    const BG_URL = 'https://raw.githubusercontent.com/FNK-Author/sadmax_intro/main/stepic.mp3';
+    const SFX_URL = 'https://raw.githubusercontent.com/FNK-Author/sadmax_intro/main/clock.mp3';
+
+    const audio1 = document.getElementById('sfxAudio');
+    const bgAudio = document.getElementById('bgAudio');
+    const dateEl = document.getElementById('date');
+    const rewindBtn = document.getElementById('rewindBtn');
+    const dyn = document.getElementById('dynamic');
+
+    const startDate = new Date(2025,9,22);
+    const endDate = new Date(1984,9,22);
+
+    async function fetchAudioBlobURL(url){
+      try {
+        const res = await fetch(url);
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        const blob = await res.blob();
+        return URL.createObjectURL(blob);
+      } catch (err) {
+        console.warn('fetchAudioBlobURL failed:', err);
+        return null;
+      }
+    }
+
+    async function playAudio(el, url, loop=false){
+      try {
+        if(el.src !== url){
+          const blobUrl = await fetchAudioBlobURL(url);
+          el.src = blobUrl || url;
+          el.loop = loop;
+          await el.load();
+        }
+        el.pause();
+        el.currentTime = 0;
+        await el.play();
+      } catch(e){
+        console.warn('Audio play failed:', e);
+      }
+    }
+
+    rewindBtn.addEventListener('click', async () => {
+      rewindBtn.style.display = 'none';
+      await playAudio(audio1, SFX_URL);
+
+      document.body.classList.add('tint');
+      const duration = 10000;
+      const start = performance.now();
+      const sTime = startDate.getTime();
+      const eTime = endDate.getTime();
+
+      function frame(now){
+        const t = Math.min(1, (now - start)/duration);
+        const eased = easeInOutQuad(t);
+        const curTime = Math.round(sTime + (eTime - sTime) * eased);
+        dateEl.textContent = fmtGerman(new Date(curTime));
+        if(t < 1){ requestAnimationFrame(frame); }
+        else {
+          dateEl.textContent = fmtGerman(endDate);
+          document.body.classList.remove('tint');
+          setTimeout(()=> {
+            dateEl.textContent = 'Noch 10 Tage bis sie stirbt...';
+            setTimeout(async ()=> {
+              dateEl.textContent = '';
+              document.body.style.backgroundImage = "url('https://i.imgur.com/vX2q3qj.jpeg')";
+              await showVideo('https://www.youtube.com/watch?v=FtMBI8l4lnI');
+            },5000);
+          },5000);
+        }
+      }
+      requestAnimationFrame(frame);
+    });
+
+    async function showVideo(url){
+      const vid = url.match(/[\?&]v=([^&]+)/)?.[1];
+      const container = document.createElement('div');
+      container.className = 'video-wrap';
+      container.innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1&playsinline=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"></iframe>`;
+
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.textContent = 'Starte die Geschichte';
+      btn.onclick = async () => {
+        container.remove();
+        btn.remove();
+        try { audio1.pause(); audio1.currentTime = 0; } catch(e){}
+        await playAudio(bgAudio, BG_URL, true);
+        showStory();
+      };
+
+      dyn.append(container, btn);
+    }
+
+    function showStory(){
+      const story = document.createElement('pre');
+      story.className = 'story';
+      story.textContent = `22 Oktober 1984
+
+Mein Wecker klingelt. Ich könnte schwören, der sonst so schrille und ohrenbetäubende Klang von diesem Teufelsgerät klingt mittlerweile noch krächzender, da ich nicht wie normale Menschen die längliche Snooze-Taste drücke, sondern diesem Plastikhaufen mit meiner Faust immer eins auf die Zwölf gebe. Hat das Teil doch auch nicht anders verdient, wenn es mir seelenlos die blutroten LCD-Striche anzeigt, die 06:00 Uhr morgens anzeigen. Wenn der Wecker doch wenigstens "Love is a Battlefield" von Pat abspielen könnte. Da hilft auch das streifige Holzdesign von Westclox nicht mehr. Egal – schlafen konnte ich sowieso nicht viel, weil meine kreisenden Gedanken nicht auf mich hören, warum sollten sie auch. So wie bei allen schön-schrecklichen Geschichten, fängt der ganze Spaß an einem Montag an. Versteh mich nicht falsch, es gibt tolle Montage, so wie an dem einen, als ich meine Zahnspange entfernt bekommen habe. Dieses Drecksding hat mich gequält, das wünsche ich nicht einmal meinem Bruder Billy. Dann aber, gibt es Montage, die wollen dich einfach mit einem Baseballschläger zu Brei hauen. Ach ja, stimmt, heute ist so ein Tag – der erste Tag in der großartigen neuen Schule, in der abenteuerlichen neuen Stadt. Gewöhn dich verdammt nochmal an meine Ironie.
+
+Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch nur einer gut enden muss, sodass ich wieder glücklich im Leben bin.`;
+
+      const link = document.createElement('a');
+      link.href = 'https://fnk-author.github.io/FNK_Fanfictions/fanfiction_reader.html';
+      link.target = '_blank';
+      link.className = 'link-btn';
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.textContent = "Lese jetzt die ganze Geschichte von Max Mayfield in meiner Fanfiction 'SADMAX'";
+      link.appendChild(btn);
+      dyn.append(story, link);
+      setTimeout(()=>{ story.scrollIntoView({behavior:'smooth',block:'center'}); },200);
+    }
+
+    function primingOnFirstInteraction(){
+      const priming = async () => {
+        window.removeEventListener('pointerdown', priming);
+        window.removeEventListener('keydown', priming);
+        try {
+          await playAudio(bgAudio, BG_URL);
+          bgAudio.pause(); bgAudio.currentTime=0;
+          await playAudio(audio1, SFX_URL);
+          audio1.pause(); audio1.currentTime=0;
+        } catch(e){}
+      };
+      window.addEventListener('pointerdown', priming, {once:true});
+      window.addEventListener('keydown', priming, {once:true});
+    }
+    primingOnFirstInteraction();
+  </script>
+</body>
+</html>
