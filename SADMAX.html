@@ -87,16 +87,14 @@
         if(el.src !== url){
           const blobUrl = await fetchAudioBlobURL(url);
           el.src = blobUrl || url;
-          el.loop = loop;
-          await el.load();
         }
-        el.pause();
-        el.currentTime = 0;
+        el.loop = loop;
         await el.play();
       } catch(e){
         console.warn('Audio play failed:', e);
       }
     }
+
 
     function stopAllAudio() {
       document.querySelectorAll('audio').forEach(a => {
@@ -203,4 +201,5 @@ Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch
   </script>
 </body>
 </html>
+
 
