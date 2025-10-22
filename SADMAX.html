@@ -61,8 +61,8 @@
     const BG_URL = 'https://raw.githubusercontent.com/FNK-Author/sadmax_intro/main/stepic.mp3';
     const SFX_URL = 'https://raw.githubusercontent.com/FNK-Author/sadmax_intro/main/clock.mp3';
 
-    const audio1 = document.getElementById('sfxAudio');
     const bgAudio = document.getElementById('bgAudio');
+    const sfxAudio = document.getElementById('sfxAudio');
     const dateEl = document.getElementById('date');
     const rewindBtn = document.getElementById('rewindBtn');
     const dyn = document.getElementById('dynamic');
@@ -95,16 +95,16 @@
       }
     }
 
-
     function stopAllAudio() {
       document.querySelectorAll('audio').forEach(a => {
         try { a.pause(); a.currentTime = 0; } catch(e){}
       });
     }
 
+    // „Zeit zurückdrehen“ Button → SFX abspielen
     rewindBtn.addEventListener('click', async () => {
       rewindBtn.style.display = 'none';
-      await playAudio(audio1, SFX_URL);
+      await playAudio(sfxAudio, SFX_URL, false); // einmalig
 
       document.body.classList.add('tint');
       const duration = 10000;
@@ -122,7 +122,7 @@
           dateEl.textContent = fmtGerman(endDate);
           document.body.classList.remove('tint');
           setTimeout(()=> {
-            dateEl.textContent = 'Ihr bleiben noch 10 Tage.';
+            dateEl.textContent = 'Ihre Zeit läuft ab...';
             setTimeout(async ()=> {
               dateEl.textContent = '';
               document.body.style.backgroundImage = "url('https://i.imgur.com/vX2q3qj.jpeg')";
@@ -146,8 +146,8 @@
       btn.onclick = async () => {
         container.remove();
         btn.remove();
-        stopAllAudio(); // Alle Audios stoppen
-        await playAudio(bgAudio, BG_URL, true);
+        stopAllAudio(); // vorherige Sounds stoppen
+        await playAudio(bgAudio, BG_URL, true); // BG looped starten
         showStory();
       };
 
@@ -157,9 +157,9 @@
     function showStory(){
       const story = document.createElement('pre');
       story.className = 'story';
-      story.textContent = `22 Oktober 1984
+      story.textContent = `22. Oktober 1984
 
-Mein Wecker klingelt. Ich könnte schwören, der sonst so schrille und ohrenbetäubende Klang von diesem Teufelsgerät klingt mittlerweile noch krächzender, da ich nicht wie normale Menschen die längliche Snooze-Taste drücke, sondern diesem Plastikhaufen mit meiner Faust immer eins auf die Zwölf gebe. Hat das Teil doch auch nicht anders verdient, wenn es mir seelenlos die blutroten LCD-Striche anzeigt, die 06:00 Uhr morgens anzeigen. Wenn der Wecker doch wenigstens "Love is a Battlefield" von Pat abspielen könnte. Da hilft auch das streifige Holzdesign von Westclox nicht mehr. Egal – schlafen konnte ich sowieso nicht viel, weil meine kreisenden Gedanken nicht auf mich hören, warum sollten sie auch. So wie bei allen schön-schrecklichen Geschichten, fängt der ganze Spaß an einem Montag an. Versteh mich nicht falsch, es gibt tolle Montage, so wie an dem einen, als ich meine Zahnspange entfernt bekommen habe. Dieses Drecksding hat mich gequält, das wünsche ich nicht einmal meinem Bruder Billy. Dann aber, gibt es Montage, die wollen dich einfach mit einem Baseballschläger zu Brei hauen. Ach ja, stimmt, heute ist so ein Tag – der erste Tag in der großartigen neuen Schule, in der abenteuerlichen neuen Stadt. Gewöhn dich verdammt nochmal an meine Ironie.
+Mein Wecker klingelt. Ich könnte schwören, der sonst so schrille und ohrenbetäubende Klang von diesem Teufelsgerät klingt mittlerweile noch krächzender, da ich nicht wie normale Menschen die längliche Snooze-Taste drücke, sondern diesem Plastikhaufen mit meiner Faust immer eins auf die Zwölf gebe. Hat das Teil doch auch nicht anders verdient, wenn es mir seelenlos die blutroten LCD-Striche anzeigt, die 06:00 Uhr morgens anzeigen. Wenn der Wecker doch wenigstens "Love is a Battlefield" von Pat abspielen könnte. Da hilft auch das streifige Holzdesign von Westclox nicht mehr. Egal – schlafen konnte ich sowieso nicht viel, weil meine kreisenden Gedanken nicht auf mich hören, warum sollten sie auch. So wie bei allen schön-schrecklichen Geschichten, fängt der ganze Spaß an einem Montag an. Versteh mich nicht falsch, es gibt tolle Montage, so wie an dem einen, als ich meine Zahnspange entfernt bekommen habe. Dieses Dreckding hat mich gequält, das wünsche ich nicht einmal meinem Bruder Billy. Dann aber, gibt es Montage, die wollen dich einfach mit einem Baseballschläger zu Brei hauen. Ach ja, stimmt, heute ist so ein Tag – der erste Tag in der großartigen neuen Schule, in der abenteuerlichen neuen Stadt. Gewöhn dich verdammt nochmal an meine Ironie.
 
 Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch nur einer gut enden muss, sodass ich wieder glücklich im Leben bin.`;
 
@@ -171,11 +171,10 @@ Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch
       btn.className = 'btn';
       btn.textContent = "Lese jetzt die ganze Geschichte von Max Mayfield in meiner Fanfiction 'SADMAX'";
       
-      // Stoppt Musik und öffnet Link sauber
       btn.addEventListener('click', (e) => {
-        e.preventDefault(); // Navigation verhindern
+        e.preventDefault();
         stopAllAudio();
-        window.open(link.href, '_blank'); // Link öffnen
+        window.open(link.href, '_blank');
       });
 
       link.appendChild(btn);
@@ -190,8 +189,8 @@ Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch
         try {
           await playAudio(bgAudio, BG_URL);
           bgAudio.pause(); bgAudio.currentTime=0;
-          await playAudio(audio1, SFX_URL);
-          audio1.pause(); audio1.currentTime=0;
+          await playAudio(sfxAudio, SFX_URL);
+          sfxAudio.pause(); sfxAudio.currentTime=0;
         } catch(e){}
       };
       window.addEventListener('pointerdown', priming, {once:true});
@@ -201,5 +200,3 @@ Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch
   </script>
 </body>
 </html>
-
-
