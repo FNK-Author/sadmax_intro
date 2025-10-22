@@ -42,7 +42,7 @@
   </style>
 </head>
 <body>
-  <audio id="bgAudio" loop playsinline preload="auto"></audio>
+  <audio id="bgAudio" playsinline preload="auto"></audio>
   <audio id="sfxAudio" playsinline preload="auto"></audio>
 
   <div class="wrap">
@@ -70,24 +70,12 @@
     const startDate = new Date(2025,9,22);
     const endDate = new Date(1984,9,22);
 
-    async function fetchAudioBlobURL(url){
-      try {
-        const res = await fetch(url);
-        if(!res.ok) throw new Error('HTTP ' + res.status);
-        const blob = await res.blob();
-        return URL.createObjectURL(blob);
-      } catch (err) {
-        console.warn('fetchAudioBlobURL failed:', err);
-        return null;
-      }
-    }
+    // Audio preload
+    sfxAudio.src = SFX_URL;
+    bgAudio.src = BG_URL;
 
-    async function playAudio(el, url, loop=false){
+    async function playAudio(el, loop=false){
       try {
-        if(el.src !== url){
-          const blobUrl = await fetchAudioBlobURL(url);
-          el.src = blobUrl || url;
-        }
         el.loop = loop;
         await el.play();
       } catch(e){
@@ -101,10 +89,9 @@
       });
     }
 
-    // „Zeit zurückdrehen“ Button → SFX abspielen
     rewindBtn.addEventListener('click', async () => {
       rewindBtn.style.display = 'none';
-      await playAudio(sfxAudio, SFX_URL, false); // einmalig
+      await playAudio(sfxAudio, false); // Musik 1 läuft einmalig, komplett durch
 
       document.body.classList.add('tint');
       const duration = 10000;
@@ -123,10 +110,10 @@
           document.body.classList.remove('tint');
           setTimeout(()=> {
             dateEl.textContent = 'Ihre Zeit läuft ab...';
-            setTimeout(async ()=> {
+            setTimeout(()=> {
               dateEl.textContent = '';
               document.body.style.backgroundImage = "url('https://i.imgur.com/vX2q3qj.jpeg')";
-              await showVideo('https://www.youtube.com/watch?v=FtMBI8l4lnI');
+              showVideo('https://www.youtube.com/watch?v=FtMBI8l4lnI');
             },5000);
           },5000);
         }
@@ -146,8 +133,7 @@
       btn.onclick = async () => {
         container.remove();
         btn.remove();
-        stopAllAudio(); // vorherige Sounds stoppen
-        await playAudio(bgAudio, BG_URL, true); // BG looped starten
+        await playAudio(bgAudio, false); // Musik 2 einmalig
         showStory();
       };
 
@@ -167,13 +153,13 @@ Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch
       link.href = 'https://fnk-author.github.io/FNK_Fanfictions/fanfiction_reader.html';
       link.target = '_blank';
       link.className = 'link-btn';
+
       const btn = document.createElement('button');
       btn.className = 'btn';
       btn.textContent = "Lese jetzt die ganze Geschichte von Max Mayfield in meiner Fanfiction 'SADMAX'";
-      
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        stopAllAudio();
+        stopAllAudio(); // Musik stoppen
         window.open(link.href, '_blank');
       });
 
@@ -181,22 +167,6 @@ Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch
       dyn.append(story, link);
       setTimeout(()=>{ story.scrollIntoView({behavior:'smooth',block:'center'}); },200);
     }
-
-    function primingOnFirstInteraction(){
-      const priming = async () => {
-        window.removeEventListener('pointerdown', priming);
-        window.removeEventListener('keydown', priming);
-        try {
-          await playAudio(bgAudio, BG_URL);
-          bgAudio.pause(); bgAudio.currentTime=0;
-          await playAudio(sfxAudio, SFX_URL);
-          sfxAudio.pause(); sfxAudio.currentTime=0;
-        } catch(e){}
-      };
-      window.addEventListener('pointerdown', priming, {once:true});
-      window.addEventListener('keydown', priming, {once:true});
-    }
-    primingOnFirstInteraction();
   </script>
 </body>
 </html>
