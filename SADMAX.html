@@ -17,7 +17,7 @@
     .wrap{width:100%;max-width:520px;margin:0 auto;text-align:center}
     .center-box{display:flex;flex-direction:column;gap:18px;align-items:center;justify-content:center;min-height:60vh}
     .date{font-weight:800;color:#b30000;font-size:30px;letter-spacing:0.5px}
-    .btn{background:var(--btn-bg);color:var(--btn-color);border:2px solid var(--btn-border);padding:12px 18px;border-radius:10px;font-weight:700;min-width:220px}
+    .btn{background:var(--btn-bg);color:var(--btn-color);border:2px solid var(--btn-border);padding:12px 18px;border-radius:10px;font-weight:700;min-width:220px;cursor:pointer}
     .btn:active{transform:translateY(1px)}
     .video-wrap{width:100%;max-width:540px}
     iframe{width:100%;height:220px;border:0;border-radius:10px}
@@ -25,17 +25,17 @@
       width:100%;
       max-width:540px;
       max-height:50vh;
-      overflow-y:auto;             /* vertikal scrollbar */
-      overflow-x:hidden;           /* horizontal blockieren */
+      overflow-y:auto;
+      overflow-x:hidden;
       padding:12px;
       border-radius:8px;
-      background:rgba(0,0,0,0.4); /* 20% schwarz */
+      background:rgba(0,0,0,0.4);
       border:0;
       color:#fff;
       text-align:left;
       line-height:1.5;
-      white-space:pre-wrap;        /* Zeilenumbrüche umgesetzt */
-      word-wrap:break-word;        /* lange Wörter umbrechen */
+      white-space:pre-wrap;
+      word-wrap:break-word;
     }
     .link-btn{display:inline-block;text-decoration:none}
     @media(min-width:480px){iframe{height:300px}}
@@ -98,6 +98,12 @@
       }
     }
 
+    function stopAllAudio() {
+      document.querySelectorAll('audio').forEach(a => {
+        try { a.pause(); a.currentTime = 0; } catch(e){}
+      });
+    }
+
     rewindBtn.addEventListener('click', async () => {
       rewindBtn.style.display = 'none';
       await playAudio(audio1, SFX_URL);
@@ -118,7 +124,7 @@
           dateEl.textContent = fmtGerman(endDate);
           document.body.classList.remove('tint');
           setTimeout(()=> {
-            dateEl.textContent = 'Noch 10 Tage bis sie stirbt.';
+            dateEl.textContent = '10 Tage bis zu ihrem Tod.';
             setTimeout(async ()=> {
               dateEl.textContent = '';
               document.body.style.backgroundImage = "url('https://i.imgur.com/vX2q3qj.jpeg')";
@@ -142,7 +148,7 @@
       btn.onclick = async () => {
         container.remove();
         btn.remove();
-        try { audio1.pause(); audio1.currentTime = 0; } catch(e){}
+        stopAllAudio(); // Alle Audios stoppen
         await playAudio(bgAudio, BG_URL, true);
         showStory();
       };
@@ -166,6 +172,14 @@ Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch
       const btn = document.createElement('button');
       btn.className = 'btn';
       btn.textContent = "Lese jetzt die ganze Geschichte von Max Mayfield in meiner Fanfiction 'SADMAX'";
+      
+      // Stoppt Musik und öffnet Link sauber
+      btn.addEventListener('click', (e) => {
+        e.preventDefault(); // Navigation verhindern
+        stopAllAudio();
+        window.open(link.href, '_blank'); // Link öffnen
+      });
+
       link.appendChild(btn);
       dyn.append(story, link);
       setTimeout(()=>{ story.scrollIntoView({behavior:'smooth',block:'center'}); },200);
@@ -189,4 +203,3 @@ Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch
   </script>
 </body>
 </html>
-
