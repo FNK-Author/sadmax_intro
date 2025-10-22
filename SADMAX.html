@@ -82,18 +82,19 @@
       }
     }
 
-    async function playAudio(el, url, loop=false){
-      try {
-        if(el.src !== url){
-          const blobUrl = await fetchAudioBlobURL(url);
+    function playAudio(el, url, loop=false){
+      if(el.src !== url){
+        fetchAudioBlobURL(url).then(blobUrl => {
           el.src = blobUrl || url;
-        }
+          el.loop = loop;
+          el.play().catch(e => console.warn('Audio play failed:', e));
+        });
+      } else {
         el.loop = loop;
-        await el.play();
-      } catch(e){
-        console.warn('Audio play failed:', e);
+        el.play().catch(e => console.warn('Audio play failed:', e));
       }
     }
+
 
     function stopAllAudio() {
       document.querySelectorAll('audio').forEach(a => {
@@ -200,4 +201,5 @@ Ich heiße Max Mayfield – und das ist der erste von zehn Tagen, von denen auch
   </script>
 </body>
 </html>
+
 
